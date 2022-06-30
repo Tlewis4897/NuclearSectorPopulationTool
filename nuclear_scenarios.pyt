@@ -82,8 +82,7 @@ class Tool(object):
                                                                           "INTERSECT",
                                                                           scenario_layer.valueAsText)
         # Create temporary layer with selected municipalities
-        path_to_view = workspace.valueAsText + '\\' + \
-            'muni_ten_percent_' + str(scenario_layer.valueAsText)
+        path_to_view = workspace.valueAsText + '\\' + 'muni_ten_percent_' + str(scenario_layer.valueAsText)
         # Check if temp layer already exists, if so delete for new run
         if arcpy.Exists(path_to_view):
             arcpy.Delete_management(path_to_view)
@@ -163,8 +162,7 @@ class Tool(object):
                                                              'NEW_SELECTION',
                                                              "NAMELSAD IN {}".format(tuple(final_ten_percent_muni)))
         if arcpy.Exists(workspace.valueAsText + '\\' + 'final_muni_ten_percent_' + str(scenario_layer.valueAsText)):
-            arcpy.Delete_management(workspace.valueAsText + '\\' +
-                                    'final_muni_ten_percent_' + str(scenario_layer.valueAsText))
+            arcpy.Delete_management(workspace.valueAsText + '\\' + 'final_muni_ten_percent_' + str(scenario_layer.valueAsText))
         arcpy.CopyFeatures_management(final_muni,
                                       workspace.valueAsText + '\\' + 'final_muni_ten_percent_' + str(scenario_layer.valueAsText))
         if arcpy.Exists(fc):
