@@ -1,4 +1,5 @@
 import arcpy
+import os
 
 
 class Toolbox(object):
@@ -25,38 +26,107 @@ class Tool(object):
     def getParameterInfo(self):
         """Define parameter definitions"""
         param0 = arcpy.Parameter(
-            displayName="Please select the Result GDB workspace",
-            name="wrkspace_select_feature",
-            datatype="DEWorkspace",
-            parameterType="Required",
-            direction="Input"
+                                displayName="Please Input 2 mile sector layer",
+                                name="scenario_two_mile",
+                                datatype="GPFeatureLayer",
+                                parameterType="Optional",
+                                direction="Input"
         )
-        param0.defaultEnvironmentName = None
+
         param1 = arcpy.Parameter(
-            displayName="Please Select Your Scenario Layer",
-                        name="scenario_select_feature",
-                        datatype="GPFeatureLayer",
-                        parameterType="Required",
-                        direction="Input"
-        )
+                                displayName="Select Scenario Sectors 2 Mile",
+                                name="in_value_sectors_two_miles",
+                                datatype="string",
+                                parameterType="Optional",
+                                direction="Input")
+        # Set a value list of 1, 10 and 100
+        param1.filter.type = "ValueList"
+        param1.filter.list = ['A','B','C','D','E','F','G','H','J','K','L','M','N','P','Q','R']
+        param1.multiValue  = True
+        param1.defaultEnvironmentName = None
+
         param2 = arcpy.Parameter(
+                                displayName="Please Input 5 mile sector layer",
+                                name="scenario_five_mile",
+                                datatype="GPFeatureLayer",
+                                parameterType="Optional",
+                                direction="Input"
+        )
+
+        param3 = arcpy.Parameter(
+                                displayName="Select Scenario Sectors 5 Mile",
+                                name="in_value_sectors_five_miles",
+                                datatype="string",
+                                parameterType="Optional",
+                                direction="Input")
+        # Set a value list of 1, 10 and 100
+        param3.filter.type = "ValueList"
+        param3.filter.list = ['A','B','C','D','E','F','G','H','J','K','L','M','N','P','Q','R']
+        param3.multiValue  = True
+        param3.defaultEnvironmentName = None
+
+        param4 = arcpy.Parameter(
+                                displayName="Please input 10 mile sector layer",
+                                name="scenario_10_mile",
+                                datatype="GPFeatureLayer",
+                                parameterType="Optional",
+                                direction="Input")
+
+        param5 = arcpy.Parameter(
+                                displayName="Select Scenario Sectors 10 Mile",
+                                name="in_value_sectors_ten_miles",
+                                datatype="string",
+                                parameterType="Optional",
+                                direction="Input")
+        # Set a value list of 1, 10 and 100
+        param5.filter.type = "ValueList"
+        param5.filter.list = ['A','B','C','D','E','F','G','H','J','K','L','M','N','P','Q','R']
+        param5.multiValue  = True
+        param5.defaultEnvironmentName = None
+
+        param6 = arcpy.Parameter(
+                                displayName="Please select the Result GDB workspace",
+                                name="wrkspace_select_feature",
+                                datatype="DEWorkspace",
+                                parameterType="Optional",
+                                direction="Input")
+        param6.defaultEnvironmentName = None
+        
+        param7 = arcpy.Parameter(
+                                displayName="Please Select Your Scenario Layer",
+                                name="scenario_select_feature",
+                                datatype="GPFeatureLayer",
+                                parameterType="Optional",
+                                direction="Input")
+        
+        param8 = arcpy.Parameter(
             displayName="Please select the municipality layer",
                         name="muni_select_feature",
                         datatype="GPFeatureLayer",
-                        parameterType="Required",
+                        parameterType="Optional",
                         direction="Input"
         )
-        param2.defaultEnvironmentName = None
-        param3 = arcpy.Parameter(
+        param8.defaultEnvironmentName = None
+        
+        param9 = arcpy.Parameter(
             displayName="Please select the population layer",
                         name="pop_select_feature",
                         datatype="GPFeatureLayer",
-                        parameterType="Required",
+                        parameterType="Optional",
                         direction="Input"
         )
-        param3.defaultEnvironmentName = None
+        param9.defaultEnvironmentName = None
 
-        params = [param0, param1, param2, param3]
+        param10 = arcpy.Parameter(
+                                displayName="Add Additional Municipalities for scenario (Input all that apply)",
+                                name="in_value_additional_munis",
+                                direction="Input",
+                                datatype="string",
+                                parameterType="Optional",
+                                multiValue=True)
+        
+
+        params = [param0, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10]
         return params
 
     def isLicensed(self):
@@ -73,6 +143,60 @@ class Tool(object):
         """Modify the messages created by internal validation for each tool
         parameter.  This method is called after internal validation."""
         return
+
+    def create_scenario(self,two_mile_layer: object, two_mile_sectors: object,
+                        five_mile_layer: object, five_mile_sectors: object,
+                        ten_mile_layer: object, ten_mile_sectors: object, workspace: object):
+        arcpy.AddMessage(two_mile_layer)
+        features_created = []
+        # Execute Selection for two mile 
+        if two_mile_sectors.value:
+            out_featureclass_two_mile = os.path.join(arcpy.env.scratchGDB, 
+                                                     'two_mile_sectors')
+            two_mile_input_select = two_mile_sectors.valueAsText.split(';')
+            two_mile_query = "Designation IN {}".format(tuple(two_mile_input_select))
+            arcpy.AddMessage(two_mile_query)
+            two_mile_final = arcpy.SelectLayerByAttribute_management(two_mile_layer.valueAsText, 
+                                                                     'NEW_SELECTION', 
+                                                                     two_mile_query)
+            arcpy.CopyFeatures_management(two_mile_final,
+                                          out_featureclass_two_mile)
+            features_created.append(out_featureclass_two_mile)
+        else: 
+            two_mile_sectors.value = 'None'
+        # Execute Selection for 5 mile 
+        if five_mile_sectors.value:
+            out_featureclass_five_mile = os.path.join(arcpy.env.scratchGDB, 
+                                    'five_mile_sectors')
+            five_mile_input_select = five_mile_sectors.valueAsText.split(';')
+            five_mile_query = "Designation IN {}".format(tuple(five_mile_input_select))
+            five_mile_final = arcpy.SelectLayerByAttribute_management(five_mile_layer.valueAsText, 
+                                                                      'NEW_SELECTION', 
+                                                                      five_mile_query)
+            arcpy.CopyFeatures_management(five_mile_final,
+                                          out_featureclass_five_mile)
+            features_created.append(out_featureclass_five_mile)
+        else: 
+            five_mile_sectors.value = 'None'
+        # Execute Selection for ten mile 
+        if ten_mile_sectors.value:
+            out_featureclass_ten_mile = os.path.join(arcpy.env.scratchGDB, 
+                                    'ten_mile_sectors')
+            ten_mile_input_select = ten_mile_sectors.valueAsText.split(';')
+            ten_mile_query = "Designation IN {}".format(tuple(ten_mile_input_select))
+            arcpy.AddMessage(ten_mile_query)
+            ten_mile_final = arcpy.SelectLayerByAttribute_management(ten_mile_layer.valueAsText, 'NEW_SELECTION', 
+                                        ten_mile_query)
+            arcpy.CopyFeatures_management(ten_mile_final,
+                                               out_featureclass_ten_mile)
+            features_created.append(out_featureclass_ten_mile)
+        else: 
+            ten_mile_sectors.value = 'None'
+        merge = os.path.join(arcpy.env.scratchGDB, 
+                                    'merge')
+        scenario_layer = arcpy.Merge_management(features_created, merge)
+        return scenario_layer
+        
 
     def get_parcel_to_scenario_intersect(self, workspace: object,
                                          scenario_layer: object,
@@ -176,11 +300,14 @@ class Tool(object):
         arcpy.AddMessage(
             "Please refresh page for results when process is complete.")
         arcpy.AddMessage('Processing...')
-        fc = self.get_parcel_to_scenario_intersect(
-            parameters[0], parameters[1], parameters[2])
-        self.detect_munis_with_10_percent_pop(
-            fc, parameters[3], parameters[1], parameters[0])
-        arcpy.AddMessage('Analysis Complete...')
+        self.create_scenario(parameters[0],parameters[1],
+                             parameters[2],parameters[3],
+                             parameters[4],parameters[5],parameters[6])
+        # fc = self.get_parcel_to_scenario_intersect(
+        #     parameters[1], parameters[2], parameters[3])
+        # self.detect_munis_with_10_percent_pop(
+        #     fc, parameters[4], parameters[2], parameters[1])
+        # arcpy.AddMessage('Analysis Complete...')
         return
 
 
